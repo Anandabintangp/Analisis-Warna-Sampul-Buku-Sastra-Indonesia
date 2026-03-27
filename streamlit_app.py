@@ -108,8 +108,8 @@ def load_data():
 
 # --- POPULARITY SCORE ---
 
-    C = df["RATING_AVG"].mean()
-    m = df["TOTAL_RATINGS"].quantile(0.75)  # threshold (bisa diubah)
+C = df["RATING_AVG"].mean()
+m = df["TOTAL_RATINGS"].quantile(0.75)  # threshold (bisa diubah)
 
 def compute_popularity(row):
     v = row["TOTAL_RATINGS"]
@@ -120,7 +120,7 @@ def compute_popularity(row):
 
     return (v/(v+m))*R + (m/(v+m))*C
 
-    df["POPULARITY_SCORE"] = df.apply(compute_popularity, axis=1)
+df["POPULARITY_SCORE"] = df.apply(compute_popularity, axis=1)
 
 def get_cover_path(filename):
     return os.path.join(COVER_DIR, str(filename))
@@ -302,7 +302,25 @@ def make_rating_bar(df_sub):
 # ─────────────────────────────────────────────────────────────────────────────
 df = load_data()
 
-@st.cache_data(show_spinner=True)
+if df is None:
+    st.error("⚠️ File data tidak ditemukan.")
+    st.stop()
+    
+C = df["RATING_AVG"].mean()
+m = df["TOTAL_RATINGS"].quantile(0.75)
+
+def compute_popularity(row):
+    v = row["TOTAL_RATINGS"]
+    R = row["RATING_AVG"]
+
+    if pd.isna(v) or pd.isna(R):
+        return np.nan
+
+    return (v/(v+m))*R + (m/(v+m))*C
+
+df["POPULARITY_SCORE"] = df.apply(compute_popularity, axis=1)
+
+@st.cache_data
 def load_palettes(df):
     palette_dict = {}
     
@@ -317,7 +335,7 @@ def load_palettes(df):
     
     return palette_dict
 
-palette_dict = load_palettes(df)
+palette_dict = load_palettes(df.head(50))
 new_categories = []
 
 for idx in df.index:
