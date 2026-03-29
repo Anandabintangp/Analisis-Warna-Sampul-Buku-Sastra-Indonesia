@@ -163,10 +163,11 @@ def map_to_color_category(hex_color):
     # warna gelap & netral dulu
     if v < 0.15:
         return "Hitam"
-    elif s < 0.2:
-        return "Abu-abu"
     elif s < 0.15 and v > 0.85:
         return "Putih"
+    elif s < 0.2:
+        return "Abu-abu"
+
 
 
     # warna kromatik (berdasarkan hue)
