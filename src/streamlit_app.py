@@ -156,24 +156,39 @@ def map_to_color_category(hex_color):
     h, s, v = hex_to_hsv(hex_color)
     h = h * 360
 
-    if v < 0.2:
+if v < 0.15:
         return "Hitam"
-    elif s < 0.2 and v > 0.8:
-        return "Abu-abu/Putih"
-    elif 0 <= h < 20 or 340 <= h <= 360:
+    elif v < 0.4 and s < 0.3:
+        return "Abu-abu Gelap"
+    elif s < 0.15 and v > 0.85:
+        return "Putih"
+    elif s < 0.2:
+        return "Abu-abu"
+        # warna kromatik (berdasarkan hue)
+    if 0 <= h < 15 or 345 <= h <= 360:
         return "Merah"
-    elif 20 <= h < 45:
-        return "Oranye/Cokelat"
-    elif 45 <= h < 70:
+    elif 15 <= h < 30:
+        return "Oranye"
+    elif 30 <= h < 50:
+        return "Kuning Tua / Emas"
+    elif 50 <= h < 70:
         return "Kuning"
-    elif 70 <= h < 160:
+    elif 70 <= h < 100:
+        return "Hijau Kekuningan (Lime)"
+    elif 100 <= h < 160:
         return "Hijau"
-    elif 160 <= h < 260:
+    elif 160 <= h < 200:
+        return "Cyan / Toska"
+    elif 200 <= h < 250:
         return "Biru"
-    elif 260 <= h < 340:
-        return "Ungu/Merah Muda"
-    else:
-        return "Lainnya"
+    elif 250 <= h < 290:
+        return "Ungu"
+    elif 290 <= h < 320:
+        return "Magenta"
+    elif 320 <= h < 345:
+        return "Merah Muda (Pink)"
+
+    return "Lainnya"
 # ─────────────────────────────────────────────────────────────────────────────
 # VISUALISASI HELPERS
 # ─────────────────────────────────────────────────────────────────────────────
