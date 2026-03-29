@@ -1,6 +1,5 @@
 """
-Analisis Warna Sampul Fiksi Sastra Indonesia
-Hugging Face Spaces — Streamlit App
+Analisis Visual Sampul Sastra Indonesia
 Fokus: Analisis Warna (Modul A)
 """
 import streamlit as st
@@ -48,7 +47,7 @@ def extract_palette_with_percent(image_path, k=5):
 # ─────────────────────────────────────────────────────────────────────────────
 COVER_DIR   = "covers"          # folder gambar sampul
 DATA_PATH   = "src/data.csv"        # CSV hasil analisis
-PAGE_TITLE  = "Analisis Warna Sampul Sastra Indonesia"
+PAGE_TITLE  = "Analisis Visual Sampul Sastra Indonesia"
 MAX_COVERS  = 48                # grid maks per halaman
 
 WARNA_HEX = {
@@ -374,7 +373,7 @@ with st.sidebar:
     
     st.markdown("---")
     view_mode = st.radio("Mode Tampilan",
-                          ["🖼️ Grid Sampul","📊 Tren Warna per Tahun","📈 Analisis Agregat"],
+                          ["🖼️ Grid Sampul","📊 Tren Warna per Tahun","📈 Analisis Agregat", "Analisis Genre"],
                           index=0)
     n_covers = st.slider("Maks. sampul ditampilkan (Grid)", 6, MAX_COVERS, 24, 6)
 
@@ -399,7 +398,6 @@ with st.sidebar:
     sel_warna = st.multiselect("Kategori Warna Dominan",
                                 WARNA_ORDER,
                                 default=[])
-
 
 # ── FILTER ───────────────────────────────────────────────────────────────────
 mask = pd.Series(True, index=df.index)
@@ -750,6 +748,104 @@ elif view_mode == "📈 Analisis Agregat":
             file_name="hasil_filter_warna.csv",
             mime="text/csv"
         )
+
+# ─────────────────────────────────────────────────────────────────────────────
+# VIEW: ANALISIS GENRE
+# ─────────────────────────────────────────────────────────────────────────────
+elif view_mode == "🏷️ Analisis Genre":
+    st.subheader("Analisis Genre Buku")
+
+    # ── PREP DATA ─────────────────────────
+    df_genre = fdf.copy()
+    df_genre["GENRE_LIST"] = df_genre["GENRES"].str.split(",")
+    df_genre = df_genre.explode("GENRE_LIST")
+    df_genre["GENRE_LIST"] = df_genre["GENRE_LIST"].str.strip()
+
+    # klasifikasi sederhana
+    def classify_genre_type(g):
+        g = g.lower()
+
+        if g in ["novel","novella","cerita pendek","puisi","drama","komik","manga"]:
+            return "Jenis Karya"
+        elif g in ["romance","fantasy","horror","thriller","mystery","science fiction"]:
+            return "Fiksi"
+        elif g in ["biografi","sejarah","filsafat","psikologi","agama"]:
+            return "Non-Fiksi"
+        else:
+            return "Tematik"
+
+    df_genre["GENRE_TYPE"] = df_genre["GENRE_LIST"].apply(classify_genre_type)
+
+    # ── METRICS ─────────────────────────
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Total Genre", df_genre["GENRE_LIST"].nunique())
+    col2.metric("Genre Tematik",
+                df_genre[df_genre["GENRE_TYPE"]=="Tematik"]["GENRE_LIST"].nunique())
+    col3.metric("Jenis Karya",
+                df_genre[df_genre["GENRE_TYPE"]=="Jenis Karya"]["GENRE_LIST"].nunique())
+
+    col4.metric("Total Buku", len(fdf))
+
+    st.markdown("---")
+
+    # ── DISTRIBUSI GENRE TYPE ─────────────────────────
+    colA, colB = st.columns(2)
+
+    with colA:
+        st.markdown("### Distribusi Jenis Genre")
+
+        type_counts = df_genre["GENRE_TYPE"].value_counts()
+
+        fig, ax = plt.subplots()
+        ax.pie(type_counts, labels=type_counts.index, autopct="%1.0f%%")
+        st.pyplot(fig)
+
+    with colB:
+        st.markdown("### Top Genre")
+
+        top_genre = df_genre["GENRE_LIST"].value_counts().head(10)
+        st.bar_chart(top_genre)
+
+    st.markdown("---")
+
+    # ── GENRE TEMATIK ─────────────────────────
+    st.markdown("### Genre Tematik Teratas")
+
+    tematik = df_genre[df_genre["GENRE_TYPE"]=="Tematik"]
+    tematik_counts = tematik["GENRE_LIST"].value_counts().head(15)
+
+    st.bar_chart(tematik_counts)
+
+    st.markdown("---")
+
+    # ── GENRE VS WARNA (BONUS 🔥) ─────────────────────────
+    st.markdown("### Warna Dominan per Genre")
+
+    df_g = df_genre.copy()
+    df_g["warna_kategori"] = df_g["warna_kategori"]
+
+    top_g = df_g["GENRE_LIST"].value_counts().head(8).index
+    df_g = df_g[df_g["GENRE_LIST"].isin(top_g)]
+
+    pivot = pd.crosstab(df_g["GENRE_LIST"], df_g["warna_kategori"])
+    pivot = pivot.div(pivot.sum(axis=1), axis=0) * 100
+
+    fig, ax = plt.subplots(figsize=(8,4))
+    bottom = np.zeros(len(pivot))
+
+    for cat in WARNA_ORDER:
+        if cat in pivot.columns:
+            vals = pivot[cat].values
+            ax.barh(pivot.index, vals, left=bottom,
+                    color=WARNA_HEX[cat], label=cat)
+            bottom += vals
+
+    ax.set_xlabel("%")
+    ax.set_title("Distribusi Warna per Genre")
+    ax.legend(fontsize=6, bbox_to_anchor=(1.05,1))
+    st.pyplot(fig)
+
 
 # ── FOOTER ────────────────────────────────────────────────────────────────────
 st.markdown("---")
