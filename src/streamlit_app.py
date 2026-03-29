@@ -52,15 +52,22 @@ PAGE_TITLE  = "Analisis Warna Sampul Sastra Indonesia"
 MAX_COVERS  = 48                # grid maks per halaman
 
 WARNA_HEX = {
-    "Merah"          : "#e63946",
-    "Oranye/Cokelat" : "#e07a5f",
-    "Kuning"         : "#f4d35e",
-    "Hijau"          : "#3d9970",
-    "Biru"           : "#4895ef",
-    "Ungu/Merah Muda": "#c77dff",
-    "Hitam"          : "#1a1a1a",
-    "Abu-abu/Putih"  : "#aaaaaa",
-    "Lainnya"        : "#dddddd",
+    "Merah"                     : "#e63946",
+    "Oranye"                    : "#f4a261",
+    "Kuning Tua / Emas"         : "#e9c46a",
+    "Kuning"                    : "#f4d35e",
+    "Hijau Kekuningan (Lime)"   : "#a7c957",
+    "Hijau"                     : "#2a9d8f",
+    "Cyan / Toska"              : "#00b4d8",
+    "Biru"                      : "#4895ef",
+    "Ungu"                      : "#7209b7",
+    "Magenta"                   : "#b5179e",
+    "Merah Muda (Pink)"         : "#ff8fab",
+    "Hitam"                     : "#1a1a1a",
+    "Abu-abu Gelap"             : "#6c757d",
+    "Abu-abu"                   : "#adb5bd",
+    "Putih"                     : "#f8f9fa",
+    "Lainnya"                   : "#dddddd",
 }
 WARNA_ORDER = list(WARNA_HEX.keys())
 
