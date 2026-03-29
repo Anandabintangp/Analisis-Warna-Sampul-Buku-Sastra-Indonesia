@@ -756,20 +756,38 @@ elif view_mode == "🏷️ Analisis Genre":
     st.subheader("Analisis Genre Buku")
 
     # ── PREP DATA ─────────────────────────
-    df_genre = fdf.copy()
-    df_genre["GENRE_LIST"] = df_genre["GENRES"].str.split(",")
-    df_genre = df_genre.explode("GENRE_LIST")
-    df_genre["GENRE_LIST"] = df_genre["GENRE_LIST"].str.strip()
+    if fdf.empty:
+        st.warning("Tidak ada data setelah filter.")
+        st.stop()
 
-    # klasifikasi sederhana
+    df_genre = fdf.copy()
+
+    # pastikan tidak ada NaN
+    df_genre = df_genre[df_genre["GENRES"].notna()]
+
+    # split genre
+    df_genre["GENRE_LIST"] = df_genre["GENRES"].astype(str).str.split(",")
+    df_genre = df_genre.explode("GENRE_LIST")
+
+    # bersihkan teks
+    df_genre["GENRE_LIST"] = df_genre["GENRE_LIST"].astype(str).str.strip()
+
+    # buang yang kosong
+    df_genre = df_genre[df_genre["GENRE_LIST"] != ""]
+
+    if df_genre.empty:
+        st.warning("Genre tidak ditemukan di data ini.")
+        st.stop()
+
+    # ── KLASIFIKASI ─────────────────────────
     def classify_genre_type(g):
         g = g.lower()
 
-        if g in ["novel","novella","cerita pendek","puisi","drama","komik","manga"]:
+        if g in ["novel","novella","cerita pendek","short stories","puisi","poetry","drama","komik","manga"]:
             return "Jenis Karya"
-        elif g in ["romance","fantasy","horror","thriller","mystery","science fiction"]:
+        elif g in ["romance","fantasy","horror","thriller","mystery","science fiction","fiction"]:
             return "Fiksi"
-        elif g in ["biografi","sejarah","filsafat","psikologi","agama"]:
+        elif g in ["biography","biografi","history","sejarah","philosophy","filsafat","psychology","agama","religion"]:
             return "Non-Fiksi"
         else:
             return "Tematik"
@@ -779,13 +797,12 @@ elif view_mode == "🏷️ Analisis Genre":
     # ── METRICS ─────────────────────────
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Total Genre", df_genre["GENRE_LIST"].nunique())
+    col1.metric("Total Genre", int(df_genre["GENRE_LIST"].nunique()))
     col2.metric("Genre Tematik",
-                df_genre[df_genre["GENRE_TYPE"]=="Tematik"]["GENRE_LIST"].nunique())
+                int(df_genre[df_genre["GENRE_TYPE"]=="Tematik"]["GENRE_LIST"].nunique()))
     col3.metric("Jenis Karya",
-                df_genre[df_genre["GENRE_TYPE"]=="Jenis Karya"]["GENRE_LIST"].nunique())
-
-    col4.metric("Total Buku", len(fdf))
+                int(df_genre[df_genre["GENRE_TYPE"]=="Jenis Karya"]["GENRE_LIST"].nunique()))
+    col4.metric("Total Buku", int(len(fdf)))
 
     st.markdown("---")
 
@@ -797,15 +814,22 @@ elif view_mode == "🏷️ Analisis Genre":
 
         type_counts = df_genre["GENRE_TYPE"].value_counts()
 
-        fig, ax = plt.subplots()
-        ax.pie(type_counts, labels=type_counts.index, autopct="%1.0f%%")
-        st.pyplot(fig)
+        if len(type_counts) > 0:
+            fig, ax = plt.subplots()
+            ax.pie(type_counts, labels=type_counts.index, autopct="%1.0f%%")
+            st.pyplot(fig)
+        else:
+            st.info("Tidak ada data untuk pie chart")
 
     with colB:
         st.markdown("### Top Genre")
 
         top_genre = df_genre["GENRE_LIST"].value_counts().head(10)
-        st.bar_chart(top_genre)
+
+        if len(top_genre) > 0:
+            st.bar_chart(top_genre)
+        else:
+            st.info("Tidak ada data genre")
 
     st.markdown("---")
 
@@ -815,36 +839,48 @@ elif view_mode == "🏷️ Analisis Genre":
     tematik = df_genre[df_genre["GENRE_TYPE"]=="Tematik"]
     tematik_counts = tematik["GENRE_LIST"].value_counts().head(15)
 
-    st.bar_chart(tematik_counts)
+    if len(tematik_counts) > 0:
+        st.bar_chart(tematik_counts)
+    else:
+        st.info("Tidak ada genre tematik")
 
     st.markdown("---")
 
-    # ── GENRE VS WARNA (BONUS 🔥) ─────────────────────────
+    # ── GENRE VS WARNA ─────────────────────────
     st.markdown("### Warna Dominan per Genre")
 
-    df_g = df_genre.copy()
-    df_g["warna_kategori"] = df_g["warna_kategori"]
+    if "warna_kategori" not in df_genre.columns:
+        st.warning("Kolom warna_kategori tidak ditemukan.")
+    else:
+        df_g = df_genre.copy()
 
-    top_g = df_g["GENRE_LIST"].value_counts().head(8).index
-    df_g = df_g[df_g["GENRE_LIST"].isin(top_g)]
+        top_g = df_g["GENRE_LIST"].value_counts().head(8).index
+        df_g = df_g[df_g["GENRE_LIST"].isin(top_g)]
 
-    pivot = pd.crosstab(df_g["GENRE_LIST"], df_g["warna_kategori"])
-    pivot = pivot.div(pivot.sum(axis=1), axis=0) * 100
+        if len(df_g) > 0:
+            pivot = pd.crosstab(df_g["GENRE_LIST"], df_g["warna_kategori"])
 
-    fig, ax = plt.subplots(figsize=(8,4))
-    bottom = np.zeros(len(pivot))
+            if pivot.shape[0] > 0:
+                pivot = pivot.div(pivot.sum(axis=1), axis=0) * 100
 
-    for cat in WARNA_ORDER:
-        if cat in pivot.columns:
-            vals = pivot[cat].values
-            ax.barh(pivot.index, vals, left=bottom,
-                    color=WARNA_HEX[cat], label=cat)
-            bottom += vals
+                fig, ax = plt.subplots(figsize=(8,4))
+                bottom = np.zeros(len(pivot))
 
-    ax.set_xlabel("%")
-    ax.set_title("Distribusi Warna per Genre")
-    ax.legend(fontsize=6, bbox_to_anchor=(1.05,1))
-    st.pyplot(fig)
+                for cat in WARNA_ORDER:
+                    if cat in pivot.columns:
+                        vals = pivot[cat].values
+                        ax.barh(pivot.index, vals, left=bottom,
+                                color=WARNA_HEX[cat], label=cat)
+                        bottom += vals
+
+                ax.set_xlabel("%")
+                ax.set_title("Distribusi Warna per Genre")
+                ax.legend(fontsize=6, bbox_to_anchor=(1.05,1))
+                st.pyplot(fig)
+            else:
+                st.info("Pivot kosong")
+        else:
+            st.info("Tidak cukup data untuk analisis warna vs genre")
 
 
 # ── FOOTER ────────────────────────────────────────────────────────────────────
