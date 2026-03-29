@@ -737,7 +737,7 @@ elif view_mode == "📈 Analisis Agregat":
 # ── FOOTER ────────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.caption(
-    "Analisis warna Jeong (2017) & Cultural Analytics (Manovich 2020). "
+    "Analisis warna Distant Reading (Tilton & Arnold 2023) & Cultural Analytics (Manovich 2020). "
     "Warna diekstrak via KMeans (k=5) pada ruang RGB. "
     "Kategorisasi warna berdasarkan rentang hue HSV."
 )
