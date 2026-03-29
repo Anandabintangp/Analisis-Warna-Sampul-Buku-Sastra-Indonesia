@@ -52,22 +52,19 @@ PAGE_TITLE  = "Analisis Warna Sampul Sastra Indonesia"
 MAX_COVERS  = 48                # grid maks per halaman
 
 WARNA_HEX = {
-    "Merah"                     : "#e63946",
-    "Oranye"                    : "#f4a261",
-    "Kuning Tua / Emas"         : "#e9c46a",
-    "Kuning"                    : "#f4d35e",
-    "Hijau Kekuningan (Lime)"   : "#a7c957",
-    "Hijau"                     : "#2a9d8f",
-    "Cyan / Toska"              : "#00b4d8",
-    "Biru"                      : "#4895ef",
-    "Ungu"                      : "#7209b7",
-    "Magenta"                   : "#b5179e",
-    "Merah Muda (Pink)"         : "#ff8fab",
-    "Hitam"                     : "#1a1a1a",
-    "Abu-abu Gelap"             : "#6c757d",
-    "Abu-abu"                   : "#adb5bd",
-    "Putih"                     : "#f8f9fa",
-    "Lainnya"                   : "#dddddd",
+    "Merah"              : "#e63946",
+    "Oranye"             : "#f4a261",
+    "Cokelat"            : "#8d5524",   # baru (dipisah dari oranye)
+    "Kuning"             : "#f4d35e",   # termasuk emas
+    "Hijau"              : "#2a9d8f",   # termasuk lime
+    "Toska"              : "#00b4d8",
+    "Biru"               : "#4895ef",
+    "Ungu"               : "#7209b7",   # termasuk magenta
+    "Merah Muda (Pink)"  : "#ff8fab",
+    "Hitam"              : "#1a1a1a",
+    "Abu-abu"            : "#adb5bd",
+    "Putih"              : "#f8f9fa",
+    "Lainnya"            : "#dddddd",
 }
 WARNA_ORDER = list(WARNA_HEX.keys())
 
@@ -166,35 +163,30 @@ def map_to_color_category(hex_color):
     # warna gelap & netral dulu
     if v < 0.15:
         return "Hitam"
-    elif v < 0.4 and s < 0.3:
-        return "Abu-abu Gelap"
-    elif s < 0.15 and v > 0.85:
-        return "Putih"
     elif s < 0.2:
         return "Abu-abu"
+    elif s < 0.15 and v > 0.85:
+        return "Putih"
+
 
     # warna kromatik (berdasarkan hue)
-    elif 0 <= h < 15 or 345 <= h <= 360:
+    elif 0 <= h < 20 or 340 <= h <= 360:
         return "Merah"
-    elif 15 <= h < 30:
+    elif 20 <= h < 35:
         return "Oranye"
-    elif 30 <= h < 50:
-        return "Kuning Tua / Emas"
+    elif 35 <= h < 50:
+        return "Cokelat"
     elif 50 <= h < 70:
         return "Kuning"
-    elif 70 <= h < 100:
-        return "Hijau Kekuningan (Lime)"
-    elif 100 <= h < 160:
+    elif 70 <= h < 160:
         return "Hijau"
     elif 160 <= h < 200:
-        return "Cyan / Toska"
-    elif 200 <= h < 250:
+        return "Toska"
+    elif 160 <= h < 260:
         return "Biru"
-    elif 250 <= h < 290:
+    elif 260 <= h < 300:
         return "Ungu"
-    elif 290 <= h < 320:
-        return "Magenta"
-    elif 320 <= h < 345:
+    elif 300 <= h < 345:
         return "Merah Muda (Pink)"
 
     return "Lainnya"
