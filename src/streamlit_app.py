@@ -156,7 +156,8 @@ def map_to_color_category(hex_color):
     h, s, v = hex_to_hsv(hex_color)
     h = h * 360
 
-if v < 0.15:
+    # warna gelap & netral dulu
+    if v < 0.15:
         return "Hitam"
     elif v < 0.4 and s < 0.3:
         return "Abu-abu Gelap"
@@ -164,8 +165,9 @@ if v < 0.15:
         return "Putih"
     elif s < 0.2:
         return "Abu-abu"
-        # warna kromatik (berdasarkan hue)
-    if 0 <= h < 15 or 345 <= h <= 360:
+
+    # warna kromatik (berdasarkan hue)
+    elif 0 <= h < 15 or 345 <= h <= 360:
         return "Merah"
     elif 15 <= h < 30:
         return "Oranye"
